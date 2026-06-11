@@ -22,8 +22,8 @@ Two environments off one Netlify site:
 
 | Env | Branch | URL | Who sees it |
 |-----|--------|-----|-------------|
-| **Production** | `main` | `https://SITE-NAME.netlify.app/...` | all visitors |
-| **Staging** | `staging` | `https://staging--SITE-NAME.netlify.app/...` | only you, via `?brdev=1` |
+| **Production** | `main` | `https://breathing-records.netlify.app/...` | all visitors |
+| **Staging** | `staging` | `https://staging--breathing-records.netlify.app/...` | only you, via `?brdev=1` |
 
 The loader serves production by default. Append `?brdev=1` to any page to load the
 `staging` branch in your browser only (sticky + cache-busted); `?brdev=0` exits.
@@ -34,9 +34,8 @@ The loader serves production by default. Append `?brdev=1` to any page to load t
    (already in `netlify.toml`). Rename the site to something stable.
 2. **Enable the staging branch deploy:** Site config → Build & deploy → Branches →
    add `staging` (or "Deploy all branches").
-3. Replace `SITE-NAME` in `injection/header.html` with your Netlify site name.
-4. Paste `injection/header.html` into Squarespace → Settings → Advanced → Code
-   Injection → **Header**. Done — once.
+3. Paste `injection/header.html` (already filled in with `breathing-records`) into
+   Squarespace → Settings → Advanced → Code Injection → **Header**. Done — once.
 
 ## Workflow (test on staging, promote to prod)
 
