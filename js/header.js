@@ -13,10 +13,10 @@
   var badge = document.createElement("div");
   badge.textContent = "STAGING";
   badge.style.cssText = [
-    "position:fixed", "bottom:12px", "right:12px", "z-index:99999",
-    "background:#c0392b", "color:#fff", "font:600 12px/1 sans-serif",
-    "padding:6px 10px", "border-radius:4px", "letter-spacing:1px",
-    "opacity:0.85", "pointer-events:none"
+    "position:fixed", "top:0", "left:0", "z-index:99999",
+    "background:#c0392b", "color:#fff", "font:700 18px/1 sans-serif",
+    "padding:10px 16px", "border-radius:0 0 6px 0", "letter-spacing:2px",
+    "opacity:0.9", "pointer-events:none"
   ].join(";");
   var add = function () { document.body.appendChild(badge); };
   if (document.body) add();
