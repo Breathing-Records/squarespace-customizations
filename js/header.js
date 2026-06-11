@@ -66,9 +66,10 @@
 (function () {
   var LOGIN_URL = "/room";
   var NAV_SELECTOR = 'a[href="#profile"]';
-  var MEMBER_ACCOUNT_PAGE = "/account/member-areas";
+  var LOGOUT_PATH = "/account/logout"; // Squarespace routes this to its sign-out panel
   var SIGNOUT_BTN_SELECTOR = 'button[data-test="sign-out"]';
   var LOGOUT_RETURN_TO = "/"; // where to land after logging out
+  var RETURN_KEY = "brLogoutReturnTo";
 
   // Person icon; uses currentColor so it matches the nav's text color.
   var ICON_SVG =
@@ -90,20 +91,28 @@
     }
   }
 
-  function gotoLogoutPage(returnTo) {
-    var url = new URL(MEMBER_ACCOUNT_PAGE, location.origin);
-    url.searchParams.set("doLogout", "1");
-    url.searchParams.set("returnTo", returnTo || "/");
-    location.href = url.toString();
+  function startLogout(returnTo) {
+    try { sessionStorage.setItem(RETURN_KEY, returnTo || "/"); } catch (e) {}
+    // Squarespace turns /account/logout into its account router
+    // (/?userAccountPath=/logout), which renders the sign-out UI.
+    // handleLogoutFlow() finishes it once that page loads.
+    location.href = LOGOUT_PATH;
   }
 
-  function autoLogoutIfRequested() {
-    if (location.pathname !== "/account/member-areas") return;
+  function inLogoutFlow() {
+    if (location.pathname === LOGOUT_PATH) return true;
+    try {
+      return new URLSearchParams(location.search).get("userAccountPath") === "/logout";
+    } catch (e) {
+      return false;
+    }
+  }
 
-    var params = new URLSearchParams(location.search);
-    if (params.get("doLogout") !== "1") return;
+  function handleLogoutFlow() {
+    if (!inLogoutFlow()) return;
 
-    var returnTo = params.get("returnTo") || "/";
+    var returnTo = "/";
+    try { returnTo = sessionStorage.getItem(RETURN_KEY) || "/"; } catch (e) {}
 
     var tries = 0;
     var t = setInterval(function () {
@@ -113,17 +122,15 @@
       if (btn) {
         clearInterval(t);
         btn.click();
-
-        // Give Squarespace a moment to clear session, then go where you want.
+        try { sessionStorage.removeItem(RETURN_KEY); } catch (e) {}
+        // Give Squarespace a moment to clear the session, then leave.
         setTimeout(function () { location.href = returnTo; }, 1200);
         return;
       }
 
-      if (tries >= 20) {
-        clearInterval(t);
-        // If sign out button never appears, at least take them back.
-        location.href = returnTo;
-      }
+      // ~8s. If no button appears, Squarespace may have auto-signed-out;
+      // leave the user where they are rather than forcing a redirect.
+      if (tries >= 32) clearInterval(t);
     }, 250);
   }
 
@@ -151,7 +158,7 @@
     action.addEventListener("click", function (e) {
       e.preventDefault();
       closeMenu();
-      if (isAuthed()) gotoLogoutPage(LOGOUT_RETURN_TO);
+      if (isAuthed()) startLogout(LOGOUT_RETURN_TO);
       else location.href = LOGIN_URL;
     });
 
@@ -219,7 +226,7 @@
 
   function init() {
     setupIcon();
-    autoLogoutIfRequested();
+    handleLogoutFlow();
   }
 
   document.addEventListener("DOMContentLoaded", init);
