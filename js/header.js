@@ -3,6 +3,27 @@
  * Mirrors Squarespace: Settings > Advanced > Code Injection > Header
  * Served via Netlify; pulled in by injection/header.html.
  */
+
+// Dev-mode indicator: shows a STAGING badge when loaded via ?brdev=1
+(function () {
+  var dev = false;
+  try { dev = localStorage.getItem("brdev") === "1"; } catch (e) {}
+  if (!dev) return;
+
+  var badge = document.createElement("div");
+  badge.textContent = "STAGING";
+  badge.style.cssText = [
+    "position:fixed", "bottom:12px", "right:12px", "z-index:99999",
+    "background:#c0392b", "color:#fff", "font:600 12px/1 sans-serif",
+    "padding:6px 10px", "border-radius:4px", "letter-spacing:1px",
+    "opacity:0.85", "pointer-events:none"
+  ].join(";");
+  var add = function () { document.body.appendChild(badge); };
+  if (document.body) add();
+  else document.addEventListener("DOMContentLoaded", add);
+})();
+
+
 // Change logo link to /room if user is logged in
 
 (function () {
