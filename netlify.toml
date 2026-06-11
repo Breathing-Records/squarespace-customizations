@@ -1,0 +1,21 @@
+# Netlify config — serves the repo as a static CDN for Squarespace.
+# No build step: the CSS/JS files are served as-is.
+# After connecting the repo in Netlify, every push to `main` redeploys.
+
+[build]
+  publish = "."
+  command = ""
+
+# Short cache + always revalidate so edits go live quickly.
+# Netlify's CDN invalidates on each deploy; these headers keep browsers honest.
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "text/css; charset=utf-8"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/javascript; charset=utf-8"

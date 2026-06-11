@@ -24,8 +24,27 @@ Squarespace customizations are typically added in one of these places:
 Keep this repo as the source of truth, then copy the relevant snippet into the
 corresponding Squarespace panel. Note in each file where it is meant to live.
 
+## Hosting (Netlify CDN)
+
+CSS/JS are served from Netlify, which deploys this repo automatically. Squarespace
+loads them via `<link>`/`<script>` tags in Code Injection, so **GitHub is the source
+of truth** — push a change and the live site picks it up (no re-pasting).
+
+- Live CSS: `https://SITE-NAME.netlify.app/css/site.css`
+- Live JS:  `https://SITE-NAME.netlify.app/js/main.js`
+- Config: `netlify.toml`
+- The `<link>` / `<script>` tags to paste once into Squarespace live in `injection/`.
+
+### One-time Netlify setup
+1. Go to https://app.netlify.com → **Add new site → Import an existing project**.
+2. Connect GitHub → pick `Breathing-Records/squarespace-customizations`.
+3. Build command: *(leave empty)*. Publish directory: `.` (already set in `netlify.toml`).
+4. Deploy, then rename the site (Site settings → Change site name) to something stable.
+5. Replace `SITE-NAME` in `injection/header.html` and `injection/footer.html` with that name.
+6. Paste the two snippets into Squarespace Code Injection (Header + Footer). Done — once.
+
 ## Workflow
 
-1. Make changes here and commit.
-2. Copy the updated snippet into the matching Squarespace panel.
-3. Record what changed and where in `notes/changelog.md`.
+1. Edit `css/site.css` / `js/main.js` and `git push`.
+2. Netlify redeploys automatically; the live site updates (hard-refresh to bust browser cache).
+3. Record what changed in `notes/changelog.md`.
