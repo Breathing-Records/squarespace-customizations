@@ -1,14 +1,12 @@
 <!--
-  Breathing Records — Squarespace asset loader
-  Paste ONCE into: Squarespace → Settings → Advanced → Code Injection → HEADER
+  Breathing Records - Squarespace asset loader
+  Paste ONCE into: Squarespace -> Settings -> Advanced -> Code Injection -> HEADER
 
   What it does:
     - Normal visitors load PRODUCTION assets (the `main` branch on Netlify).
     - Add ?brdev=1 to any page URL to load STAGING assets (the `staging` branch)
-      for that browser only. It's sticky (remembered) and cache-busted, so you
+      for that browser only. It is sticky (remembered) and cache-busted, so you
       always see your latest push. Add ?brdev=0 to switch back to production.
-
-  Setup: replace SITE-NAME below with your Netlify subdomain (e.g. breathing-records).
 -->
 <script>
 (function () {
@@ -40,6 +38,6 @@
   js.defer = true;
   document.head.appendChild(js);
 
-  if (dev) console.log("[BR] DEV mode — assets from " + base);
+  if (dev) console.log("[BR] DEV mode - assets from " + base);
 })();
 </script>
