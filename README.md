@@ -41,7 +41,12 @@ See `notes/dev-bookmarklet.md` for a one-click toggle.
    add `staging` (or "Deploy all branches").
 3. Paste `injection/header.html` into Squarespace > Settings > Advanced > Code
    Injection > Header box.
-4. Paste `injection/footer.html` into the Footer box on the same screen. Done, once.
+4. Paste `injection/footer.html` into the Footer box on the same screen.
+5. Paste `injection/custom-css.css` into Design > Custom CSS, replacing anything there.
+   (That box holds only a "do not edit here" notice; real CSS is `css/site.css`.) Done, once.
+
+Each pasted snippet starts with a loud "DO NOT EDIT HERE - managed in GitHub" banner so
+nobody edits the live boxes by mistake.
 
 ## Workflow (test on staging, promote to prod)
 
