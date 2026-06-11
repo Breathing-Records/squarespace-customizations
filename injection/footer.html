@@ -1,0 +1,24 @@
+<!--
+  Breathing Records - FOOTER loader
+  Paste ONCE into: Squarespace -> Settings -> Advanced -> Code Injection -> FOOTER
+
+  Loads js/footer.js from Netlify (deferred, so it runs after the page parses).
+  Production by default; follows the same ?brdev=1 staging toggle set in the header.
+-->
+<script>
+(function () {
+  var SITE = "breathing-records"; // Netlify site name
+  var prod    = "https://" + SITE + ".netlify.app";
+  var staging = "https://staging--" + SITE + ".netlify.app";
+
+  var dev = false;
+  try { dev = localStorage.getItem("brdev") === "1"; } catch (e) {}
+  var base = dev ? staging : prod;
+  var bust = dev ? "?t=" + Date.now() : "";
+
+  var js = document.createElement("script");
+  js.src = base + "/js/footer.js" + bust;
+  js.defer = true;
+  document.head.appendChild(js);
+})();
+</script>
