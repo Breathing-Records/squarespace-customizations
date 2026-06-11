@@ -1,4 +1,5 @@
 /*
  * Site-wide custom CSS for Breathing Records
- * Paste into: Squarespace → Design → Custom CSS
+ * Served via Netlify; loaded by injection/header.html.
  */
+/* staging-deploy-test: remove after verifying ?brdev=1 */
