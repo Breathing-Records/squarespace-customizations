@@ -12,39 +12,38 @@ Custom code and assets for the Breathing Records Squarespace website.
 | `assets/` | Images, fonts, and other static files |
 | `notes/` | Design notes, decisions, and Squarespace config reference |
 
-## How customizations are applied in Squarespace
+## Hosting & environments (Netlify)
 
-Squarespace customizations are typically added in one of these places:
+CSS/JS are served from Netlify, which auto-deploys this repo. Squarespace loads them
+via a small loader snippet (`injection/header.html`, pasted once into Code Injection →
+Header), so **GitHub is the source of truth**.
 
-- **Settings → Advanced → Code Injection** — site-wide `<head>` / `<footer>` code (see `injection/`)
-- **Design → Custom CSS** — site-wide CSS (see `css/site.css`)
-- **Page Settings → Advanced → Page Header Code Injection** — per-page code
-- **Code Blocks** — inline HTML/CSS/JS on a specific page/section
+Two environments off one Netlify site:
 
-Keep this repo as the source of truth, then copy the relevant snippet into the
-corresponding Squarespace panel. Note in each file where it is meant to live.
+| Env | Branch | URL | Who sees it |
+|-----|--------|-----|-------------|
+| **Production** | `main` | `https://SITE-NAME.netlify.app/...` | all visitors |
+| **Staging** | `staging` | `https://staging--SITE-NAME.netlify.app/...` | only you, via `?brdev=1` |
 
-## Hosting (Netlify CDN)
+The loader serves production by default. Append `?brdev=1` to any page to load the
+`staging` branch in your browser only (sticky + cache-busted); `?brdev=0` exits.
 
-CSS/JS are served from Netlify, which deploys this repo automatically. Squarespace
-loads them via `<link>`/`<script>` tags in Code Injection, so **GitHub is the source
-of truth** — push a change and the live site picks it up (no re-pasting).
+### One-time setup
+1. **Netlify:** app.netlify.com → Add new site → Import → pick
+   `Breathing-Records/squarespace-customizations`. Build command empty; publish `.`
+   (already in `netlify.toml`). Rename the site to something stable.
+2. **Enable the staging branch deploy:** Site config → Build & deploy → Branches →
+   add `staging` (or "Deploy all branches").
+3. Replace `SITE-NAME` in `injection/header.html` with your Netlify site name.
+4. Paste `injection/header.html` into Squarespace → Settings → Advanced → Code
+   Injection → **Header**. Done — once.
 
-- Live CSS: `https://SITE-NAME.netlify.app/css/site.css`
-- Live JS:  `https://SITE-NAME.netlify.app/js/main.js`
-- Config: `netlify.toml`
-- The `<link>` / `<script>` tags to paste once into Squarespace live in `injection/`.
+## Workflow (test on staging, promote to prod)
 
-### One-time Netlify setup
-1. Go to https://app.netlify.com → **Add new site → Import an existing project**.
-2. Connect GitHub → pick `Breathing-Records/squarespace-customizations`.
-3. Build command: *(leave empty)*. Publish directory: `.` (already set in `netlify.toml`).
-4. Deploy, then rename the site (Site settings → Change site name) to something stable.
-5. Replace `SITE-NAME` in `injection/header.html` and `injection/footer.html` with that name.
-6. Paste the two snippets into Squarespace Code Injection (Header + Footer). Done — once.
+1. `git switch staging`, edit `css/site.css` / `js/main.js`, commit, `git push`.
+2. Test thoroughly on the real site at `breathingrecords.com/?brdev=1`.
+3. When happy, promote: `git switch main && git merge staging && git push`.
+4. Record what changed in `notes/changelog.md`.
 
-## Workflow
-
-1. Edit `css/site.css` / `js/main.js` and `git push`.
-2. Netlify redeploys automatically; the live site updates (hard-refresh to bust browser cache).
-3. Record what changed in `notes/changelog.md`.
+Rollback: if a bad change reached `main`, `git revert <commit> && git push` —
+Netlify redeploys in ~30s.

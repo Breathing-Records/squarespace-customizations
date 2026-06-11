@@ -1,8 +1,45 @@
 <!--
-  Site-wide HEADER code injection for Breathing Records
-  Paste into: Squarespace → Settings → Advanced → Code Injection → Header
+  Breathing Records — Squarespace asset loader
+  Paste ONCE into: Squarespace → Settings → Advanced → Code Injection → HEADER
 
-  Loads custom CSS from Netlify (source of truth = this GitHub repo).
-  Replace SITE-NAME below with your actual Netlify subdomain after connecting.
+  What it does:
+    - Normal visitors load PRODUCTION assets (the `main` branch on Netlify).
+    - Add ?brdev=1 to any page URL to load STAGING assets (the `staging` branch)
+      for that browser only. It's sticky (remembered) and cache-busted, so you
+      always see your latest push. Add ?brdev=0 to switch back to production.
+
+  Setup: replace SITE-NAME below with your Netlify subdomain (e.g. breathing-records).
 -->
-<link rel="stylesheet" href="https://SITE-NAME.netlify.app/css/site.css">
+<script>
+(function () {
+  var SITE = "SITE-NAME"; // <-- your Netlify site name
+  var prod    = "https://" + SITE + ".netlify.app";
+  var staging = "https://staging--" + SITE + ".netlify.app";
+
+  // Toggle staging via ?brdev=1 (on, sticky) / ?brdev=0 (off).
+  try {
+    var p = new URLSearchParams(location.search);
+    if (p.has("brdev")) {
+      if (p.get("brdev") === "0") localStorage.removeItem("brdev");
+      else localStorage.setItem("brdev", "1");
+    }
+  } catch (e) {}
+
+  var dev = false;
+  try { dev = localStorage.getItem("brdev") === "1"; } catch (e) {}
+  var base = dev ? staging : prod;
+  var bust = dev ? "?t=" + Date.now() : ""; // always-fresh in staging
+
+  var css = document.createElement("link");
+  css.rel = "stylesheet";
+  css.href = base + "/css/site.css" + bust;
+  document.head.appendChild(css);
+
+  var js = document.createElement("script");
+  js.src = base + "/js/main.js" + bust;
+  js.defer = true;
+  document.head.appendChild(js);
+
+  if (dev) console.log("[BR] DEV mode — assets from " + base);
+})();
+</script>
