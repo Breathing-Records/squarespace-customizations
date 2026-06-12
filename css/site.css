@@ -151,3 +151,11 @@
 .sqs-tourdates__date {
   color: #fff !important;
 }
+
+
+/* Suppress Squarespace's customer-account drawer that auto-opens after login.
+   js/header.js also clicks its internal Close so the page scroll-lock is
+   released; this rule just keeps it from ever flashing into view. */
+#accountFrame {
+  display: none !important;
+}

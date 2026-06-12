@@ -219,3 +219,68 @@
   setTimeout(setupIcon, 800);
   setTimeout(updateMenuLabel, 1500);
 })();
+
+
+// Suppress Squarespace's customer-account drawer that auto-opens after login.
+// The drawer is an iframe#accountFrame (a direct child of <body>); CSS keeps it
+// visually hidden (see css/site.css), and here we click its internal "Close"
+// button so Squarespace tears down its own scroll-lock (body{overflow:hidden})
+// and removes the iframe cleanly. The iframe is same-origin, so we can reach in.
+(function () {
+  function isLocked() {
+    var de = document.documentElement, b = document.body;
+    return getComputedStyle(de).overflow === "hidden" ||
+      (b && getComputedStyle(b).overflow === "hidden");
+  }
+
+  function dismiss(frame) {
+    if (frame.__brDismissed) return;
+    frame.__brDismissed = true;
+
+    var tries = 0;
+    var t = setInterval(function () {
+      tries++;
+      var gone = !document.getElementById("accountFrame"); // Squarespace removed it
+      try {
+        var doc = frame.contentDocument;
+        if (doc) {
+          var els = doc.querySelectorAll('button, a, [role="button"]');
+          for (var i = 0; i < els.length; i++) {
+            if ((els[i].textContent || "").trim().toLowerCase() === "close") {
+              els[i].click(); // native close: removes iframe + restores scroll
+              gone = true;
+              break;
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (gone) {
+        clearInterval(t);
+      } else if (tries >= 50) { // ~5s: native close never fired
+        clearInterval(t);
+        // Last resort, only if the drawer left the page scroll-locked: tear it
+        // down ourselves so the page can't get stuck behind a hidden iframe.
+        if (isLocked()) {
+          var f = document.getElementById("accountFrame");
+          if (f && f.parentNode) f.parentNode.removeChild(f);
+          document.documentElement.style.overflow = "";
+          if (document.body) document.body.style.overflow = "";
+        }
+      }
+    }, 100);
+  }
+
+  function check() {
+    var frame = document.getElementById("accountFrame");
+    if (frame) dismiss(frame);
+  }
+
+  function start() {
+    if (!document.body) { setTimeout(start, 50); return; }
+    new MutationObserver(check).observe(document.body, { childList: true });
+    check();
+  }
+
+  start();
+})();
