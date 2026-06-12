@@ -66,7 +66,6 @@
 (function () {
   var LOGIN_URL = "/room";
   var NAV_SELECTOR = 'a[href="#profile"]';
-  var SIGNOUT_BTN_SELECTOR = '[data-test="sign-out"]';
   var LOGOUT_RETURN_TO = "/"; // where to land after logging out
 
   // Person icon; uses currentColor so it matches the nav's text color.
@@ -89,32 +88,33 @@
     }
   }
 
+  function getCookie(name) {
+    var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + name + "=([^;]+)"));
+    return m ? m[1] : "";
+  }
+
   function doLogout(returnTo) {
-    // UserAccountApi has no direct logout method, but openAccountScreen() opens
-    // Squarespace's account overlay, which contains the sign-out button. We open
-    // it, click sign-out, then send the user home.
-    try {
-      if (window.UserAccountApi &&
-          typeof window.UserAccountApi.openAccountScreen === "function") {
-        window.UserAccountApi.openAccountScreen();
+    // Squarespace's customer-account sign-out is a DELETE on the site-user
+    // session. UserAccountApi exposes no logout method, and openAccountScreen()
+    // just navigates to a reauthenticate page, so we replicate the request the
+    // native "Sign out" button fires from inside the /account/frame iframe.
+    // The two required tokens live in JS-readable cookies:
+    //   crumb         -> x-csrf-token
+    //   siteUserCrumb -> x-siteuser-xsrf-token
+    var dest = returnTo || "/";
+
+    fetch("/api/site-users/account/session?cloneCart=false", {
+      method: "DELETE",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "accept": "application/json, text/plain, */*",
+        "x-csrf-token": getCookie("crumb"),
+        "x-siteuser-xsrf-token": getCookie("siteUserCrumb")
       }
-    } catch (e) {}
-
-    var tries = 0;
-    var t = setInterval(function () {
-      tries++;
-
-      var btn = document.querySelector(SIGNOUT_BTN_SELECTOR);
-      if (btn) {
-        clearInterval(t);
-        btn.click();
-        // Give Squarespace a moment to clear the session, then leave.
-        setTimeout(function () { location.href = returnTo || "/"; }, 1200);
-        return;
-      }
-
-      if (tries >= 40) clearInterval(t); // ~10s, give up quietly
-    }, 250);
+    })
+      .then(function () { location.href = dest; })
+      .catch(function () { location.href = dest; });
   }
 
   function buildMenu() {
