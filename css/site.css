@@ -153,9 +153,7 @@
 }
 
 
-/* Suppress Squarespace's customer-account drawer that auto-opens after login.
-   js/header.js also clicks its internal Close so the page scroll-lock is
-   released; this rule just keeps it from ever flashing into view. */
-#accountFrame {
-  display: none !important;
-}
+/* NOTE: the post-login customer-account drawer (iframe#accountFrame) is
+   suppressed in js/header.js, NOT here. We must not hide #accountFrame in CSS:
+   Squarespace reuses that same iframe for the login/signup overlay, so a blanket
+   rule breaks the Login and Sign Up buttons. */
