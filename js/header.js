@@ -221,12 +221,20 @@
 })();
 
 
-// Suppress Squarespace's customer-account drawer that auto-opens after login.
-// The drawer is an iframe#accountFrame (a direct child of <body>); CSS keeps it
-// visually hidden (see css/site.css), and here we click its internal "Close"
-// button so Squarespace tears down its own scroll-lock (body{overflow:hidden})
-// and removes the iframe cleanly. The iframe is same-origin, so we can reach in.
+// Suppress ONLY Squarespace's post-login customer-account drawer (the "Digital
+// Products" dashboard that auto-opens after sign-in). Squarespace reuses the
+// same iframe#accountFrame for the login/signup overlay, so we must never touch
+// that one or those buttons break. The distinguisher: the dashboard runs as a
+// top-level /account/* page (e.g. /account/digital-products), whereas a
+// login/signup overlay leaves the top URL on the underlying content page.
 (function () {
+  function isDashboard() {
+    var p = (location.pathname || "").toLowerCase();
+    if (p.indexOf("/account") !== 0) return false;        // not the account area
+    // ...but never treat an auth form as the dashboard.
+    return !/\/(login|sign-?up|register|password|reauthenticate|reset)/.test(p);
+  }
+
   function isLocked() {
     var de = document.documentElement, b = document.body;
     return getComputedStyle(de).overflow === "hidden" ||
@@ -236,6 +244,7 @@
   function dismiss(frame) {
     if (frame.__brDismissed) return;
     frame.__brDismissed = true;
+    frame.style.display = "none"; // hide just this dashboard instance (no flash)
 
     var tries = 0;
     var t = setInterval(function () {
@@ -272,6 +281,7 @@
   }
 
   function check() {
+    if (!isDashboard()) return;                 // leave login/signup overlays alone
     var frame = document.getElementById("accountFrame");
     if (frame) dismiss(frame);
   }
@@ -279,6 +289,7 @@
   function start() {
     if (!document.body) { setTimeout(start, 50); return; }
     new MutationObserver(check).observe(document.body, { childList: true });
+    window.addEventListener("popstate", check); // URL may flip to /account after open
     check();
   }
 
