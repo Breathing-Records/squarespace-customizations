@@ -248,19 +248,24 @@
     var fanLink = document.querySelector(FAN_LINK_SELECTOR);
     if (!fanLink) return;
 
-    var fanLi = fanLink.closest("li");
-    if (!fanLi || !fanLi.parentNode) return;
+    // Squarespace may use <li> or <div> for nav items — try both.
+    var fanItem = fanLink.closest("li") || fanLink.closest("div[class*='nav']") || fanLink.parentElement;
+    if (!fanItem || !fanItem.parentNode) return;
 
-    var li = document.createElement("li");
-    li.className = fanLi.className; // match Squarespace nav item styles
+    var item = document.createElement(fanItem.tagName);
+    item.className = fanItem.className;
 
     var a = document.createElement("a");
     a.href = DJ_URL;
-    a.className = (fanLink.className || "") + " br-dj-nav";
+    a.className = fanLink.className + " br-dj-nav";
+    // Copy non-href attributes (e.g. data-animation-role) so it blends in.
+    Array.prototype.forEach.call(fanLink.attributes, function (attr) {
+      if (attr.name !== "href" && attr.name !== "class") a.setAttribute(attr.name, attr.value);
+    });
     a.textContent = "DJ Room";
 
-    li.appendChild(a);
-    fanLi.parentNode.insertBefore(li, fanLi.nextSibling);
+    item.appendChild(a);
+    fanItem.parentNode.insertBefore(item, fanItem.nextSibling);
   }
 
   function cacheSet(val) {
@@ -297,22 +302,24 @@
       .catch(function () {});
   }
 
-  // Poll until the Fans nav link appears (Squarespace renders the nav late).
-  var _attempts = 0;
-  function poll() {
-    _attempts++;
-    if (document.querySelector(FAN_LINK_SELECTOR)) {
-      run();
-    } else if (_attempts < 40) { // up to ~8s
-      setTimeout(poll, 200);
-    }
+  // Watch for the Fans nav link via MutationObserver — fires the moment it appears
+  // regardless of how late Squarespace renders the nav.
+  var _ran = false;
+  function tryRun() {
+    if (_ran) return;
+    if (!document.querySelector(FAN_LINK_SELECTOR)) return;
+    _ran = true;
+    if (obs) obs.disconnect();
+    run();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", poll);
-  } else {
-    poll();
-  }
+  var obs = new MutationObserver(tryRun);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+
+  // Also try immediately and after short delays as a fast-path.
+  tryRun();
+  setTimeout(tryRun, 500);
+  setTimeout(tryRun, 2000);
 })();
 
 
