@@ -263,7 +263,14 @@
       if (attr.name !== "href" && attr.name !== "class") a.setAttribute(attr.name, attr.value);
     });
     a.textContent = "DJ Room";
-    a.style.cssText += ";background:#c0392b;color:#fff!important;padding:3px 12px;border-radius:999px;font-size:0.9em;";
+    a.style.cssText += ";border:2px solid #c0392b;color:#c0392b!important;padding:3px 12px;border-radius:999px;font-size:0.9em;animation:br-dj-pulse 2s ease-in-out infinite;";
+
+    if (!document.getElementById("br-dj-nav-style")) {
+      var style = document.createElement("style");
+      style.id = "br-dj-nav-style";
+      style.textContent = "@keyframes br-dj-pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0.5)}60%{box-shadow:0 0 0 6px rgba(192,57,43,0)}}";
+      document.head.appendChild(style);
+    }
 
     item.appendChild(a);
     fanItem.parentNode.insertBefore(item, fanItem);
