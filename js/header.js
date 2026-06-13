@@ -265,7 +265,7 @@
     a.textContent = "DJ Room";
 
     item.appendChild(a);
-    fanItem.parentNode.insertBefore(item, fanItem.nextSibling);
+    fanItem.parentNode.insertBefore(item, fanItem);
   }
 
   function cacheSet(val) {
