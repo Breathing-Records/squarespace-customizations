@@ -262,7 +262,8 @@
     Array.prototype.forEach.call(fanLink.attributes, function (attr) {
       if (attr.name !== "href" && attr.name !== "class") a.setAttribute(attr.name, attr.value);
     });
-    a.innerHTML = '<span style="color:#c0392b;font-size:0.5em;vertical-align:middle;margin-right:4px;line-height:1;">&#9679;</span>DJ Room';
+    a.textContent = "DJ Room";
+    a.style.cssText += ";background:#c0392b;color:#fff!important;padding:3px 12px;border-radius:999px;font-size:0.9em;";
 
     item.appendChild(a);
     fanItem.parentNode.insertBefore(item, fanItem);
