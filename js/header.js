@@ -223,6 +223,81 @@
 })();
 
 
+// DJ Room nav link — injected only for verified DJ members.
+// Reads the br_is_dj sessionStorage cache set by /room. If not cached,
+// hits /dj-check once to check. Never exposes /dj-room13 to non-DJs.
+(function () {
+  var DJ_URL = "/dj-room13";
+  var CACHE_KEY = "br_is_dj";
+  var CACHE_TTL = 5 * 60 * 1000;
+  var FAN_LINK_SELECTOR = 'a[href="/fan-room"]';
+
+  function cacheGet() {
+    try {
+      var v = sessionStorage.getItem(CACHE_KEY);
+      if (!v) return null;
+      var o = JSON.parse(v);
+      if (!o || Date.now() - o.t > CACHE_TTL) return null;
+      return o.v;
+    } catch (e) { return null; }
+  }
+
+  function injectLink() {
+    if (document.querySelector('a[href="' + DJ_URL + '"].br-dj-nav')) return;
+
+    var fanLink = document.querySelector(FAN_LINK_SELECTOR);
+    if (!fanLink) return;
+
+    var fanLi = fanLink.closest("li");
+    if (!fanLi || !fanLi.parentNode) return;
+
+    var li = document.createElement("li");
+    li.className = fanLi.className; // match Squarespace nav item styles
+
+    var a = document.createElement("a");
+    a.href = DJ_URL;
+    a.className = (fanLink.className || "") + " br-dj-nav";
+    a.textContent = "DJ Room";
+
+    li.appendChild(a);
+    fanLi.parentNode.insertBefore(li, fanLi.nextSibling);
+  }
+
+  function run() {
+    var cached = cacheGet();
+    if (cached === true) { injectLink(); return; }
+    if (cached === false) return; // confirmed non-DJ, don't check again
+
+    // Cache miss — check once (only if logged in, to avoid hitting on every page for guests)
+    try {
+      if (!window.UserAccountApi || !window.UserAccountApi.isUserAuthenticated()) return;
+    } catch (e) { return; }
+
+    fetch("/dj-check?t=" + Date.now(), { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { return r.text().then(function (t) { return { r: r, t: t }; }); })
+      .then(function (o) {
+        var txt = (o.t || "").toLowerCase();
+        var looksLikeLogin = txt.indexOf("sqs-login") !== -1 ||
+          txt.indexOf("log in") !== -1 || txt.indexOf("sign in") !== -1;
+        var isDj = o.r && o.r.ok && !looksLikeLogin;
+        try {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ v: isDj, t: Date.now() }));
+        } catch (e) {}
+        if (isDj) injectLink();
+      })
+      .catch(function () {});
+  }
+
+  // Wait for nav to render
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () { setTimeout(run, 300); });
+  } else {
+    setTimeout(run, 300);
+  }
+  setTimeout(run, 1000); // retry for late-rendering nav
+})();
+
+
 // Suppress ONLY Squarespace's post-login customer-account drawer (the "Digital
 // Products" dashboard that auto-opens after sign-in). Squarespace reuses the
 // same iframe#accountFrame for the login/signup overlay, so we must never touch
