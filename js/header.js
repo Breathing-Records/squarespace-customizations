@@ -24,42 +24,6 @@
 })();
 
 
-// Change logo link to /room if user is logged in
-
-(function () {
-  function isAuthed() {
-    try {
-      return !!(
-        window.UserAccountApi &&
-        typeof window.UserAccountApi.isUserAuthenticated === "function" &&
-        window.UserAccountApi.isUserAuthenticated()
-      );
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function updateLogoLink() {
-    // Covers desktop + mobile logos in Squarespace 7.1
-    var logoLinks = document.querySelectorAll(
-      '.header-title-logo a, .header-mobile-logo a'
-    );
-
-    if (!logoLinks.length) return;
-
-    var target = isAuthed() ? "/room" : "/";
-
-    logoLinks.forEach(function (a) {
-      a.setAttribute("href", target);
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", updateLogoLink);
-  window.addEventListener("pageshow", updateLogoLink);
-
-  // Run once more in case header renders late
-  setTimeout(updateLogoLink, 600);
-})();
 
 
 // Profile icon + dropdown menu (Login when logged out, Logout when logged in)
@@ -264,7 +228,7 @@
     });
     a.textContent = "DJ Room";
     var onDjPage = location.pathname === DJ_URL;
-    var pulse = onDjPage ? "" : "animation:br-dj-pulse 6s ease-in-out infinite;";
+    var pulse = onDjPage ? "" : "animation:br-dj-pulse 10s ease-in-out infinite;";
     a.style.cssText += ";border:2px solid #c0392b;color:#c0392b!important;padding:3px 12px;border-radius:999px;font-size:0.9em;" + pulse;
 
     if (!onDjPage && !document.getElementById("br-dj-nav-style")) {
