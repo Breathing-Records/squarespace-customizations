@@ -263,9 +263,11 @@
       if (attr.name !== "href" && attr.name !== "class") a.setAttribute(attr.name, attr.value);
     });
     a.textContent = "DJ Room";
-    a.style.cssText += ";border:2px solid #c0392b;color:#c0392b!important;padding:3px 12px;border-radius:999px;font-size:0.9em;animation:br-dj-pulse 2s ease-in-out infinite;";
+    var onDjPage = location.pathname === DJ_URL;
+    var pulse = onDjPage ? "" : "animation:br-dj-pulse 6s ease-in-out infinite;";
+    a.style.cssText += ";border:2px solid #c0392b;color:#c0392b!important;padding:3px 12px;border-radius:999px;font-size:0.9em;" + pulse;
 
-    if (!document.getElementById("br-dj-nav-style")) {
+    if (!onDjPage && !document.getElementById("br-dj-nav-style")) {
       var style = document.createElement("style");
       style.id = "br-dj-nav-style";
       style.textContent = "@keyframes br-dj-pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0.5)}60%{box-shadow:0 0 0 6px rgba(192,57,43,0)}}";
