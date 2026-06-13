@@ -263,15 +263,26 @@
     fanLi.parentNode.insertBefore(li, fanLi.nextSibling);
   }
 
+  function cacheSet(val) {
+    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ v: val, t: Date.now() })); } catch (e) {}
+  }
+
   function run() {
+    // If we're on the DJ Room itself, the member gate already confirmed access — inject directly.
+    if (location.pathname === DJ_URL) {
+      cacheSet(true);
+      injectLink();
+      return;
+    }
+
     var cached = cacheGet();
     if (cached === true) { injectLink(); return; }
     if (cached === false) return; // confirmed non-DJ, don't check again
 
-    // Cache miss — check once (only if logged in, to avoid hitting on every page for guests)
-    try {
-      if (!window.UserAccountApi || !window.UserAccountApi.isUserAuthenticated()) return;
-    } catch (e) { return; }
+    // Cache miss — hit /dj-check once. Guard on crumb cookie as a lightweight
+    // "likely logged in" signal to avoid firing on every guest page load.
+    var crumb = document.cookie.indexOf("crumb=") !== -1;
+    if (!crumb) return;
 
     fetch("/dj-check?t=" + Date.now(), { credentials: "same-origin", cache: "no-store" })
       .then(function (r) { return r.text().then(function (t) { return { r: r, t: t }; }); })
@@ -280,9 +291,7 @@
         var looksLikeLogin = txt.indexOf("sqs-login") !== -1 ||
           txt.indexOf("log in") !== -1 || txt.indexOf("sign in") !== -1;
         var isDj = o.r && o.r.ok && !looksLikeLogin;
-        try {
-          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ v: isDj, t: Date.now() }));
-        } catch (e) {}
+        cacheSet(isDj);
         if (isDj) injectLink();
       })
       .catch(function () {});
