@@ -297,13 +297,22 @@
       .catch(function () {});
   }
 
-  // Wait for nav to render
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () { setTimeout(run, 300); });
-  } else {
-    setTimeout(run, 300);
+  // Poll until the Fans nav link appears (Squarespace renders the nav late).
+  var _attempts = 0;
+  function poll() {
+    _attempts++;
+    if (document.querySelector(FAN_LINK_SELECTOR)) {
+      run();
+    } else if (_attempts < 40) { // up to ~8s
+      setTimeout(poll, 200);
+    }
   }
-  setTimeout(run, 1000); // retry for late-rendering nav
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", poll);
+  } else {
+    poll();
+  }
 })();
 
 
