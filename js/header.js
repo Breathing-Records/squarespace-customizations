@@ -103,6 +103,8 @@
     //   siteUserCrumb -> x-siteuser-xsrf-token
     var dest = returnTo || "/";
 
+    try { sessionStorage.removeItem("br_is_dj"); } catch (e) {}
+
     fetch("/api/site-users/account/session?cloneCart=false", {
       method: "DELETE",
       mode: "cors",
