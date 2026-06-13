@@ -282,10 +282,10 @@
 
     var cached = cacheGet();
     if (cached === true) { injectLink(); return; }
-    if (cached === false) return; // confirmed non-DJ, don't check again
 
-    // Cache miss — hit /dj-check once. Guard on crumb cookie as a lightweight
-    // "likely logged in" signal to avoid firing on every guest page load.
+    // Guard on crumb cookie as a lightweight "logged in" signal.
+    // Don't skip on cached===false: /room caches false when the user isn't
+    // yet authenticated, so after they log in the cache is stale-false.
     var crumb = document.cookie.indexOf("crumb=") !== -1;
     if (!crumb) return;
 
